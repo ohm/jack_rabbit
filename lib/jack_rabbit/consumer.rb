@@ -2,9 +2,9 @@ require 'hot_bunnies'
 
 module JackRabbit
   class Consumer
-    EXCHANGE_OPTIONS = { durable: true, type: :direct }
-    QUEUE_OPTIONS    = { durable: true }
-    SUBSCRIBE_OPTIONS= { ack: true, blocking: false }
+    EXCHANGE_OPTIONS  = { durable: true, type: :direct }
+    QUEUE_OPTIONS     = { durable: true }
+    SUBSCRIBE_OPTIONS = { ack: true, blocking: false }
 
     def initialize
       @connections   = []
