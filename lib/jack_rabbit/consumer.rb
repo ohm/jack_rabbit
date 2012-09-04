@@ -50,15 +50,25 @@ module JackRabbit
       end
     end
 
-    def bind_queues(channels, exchange_name, key, queue, options, &block)
+    def bind_queues(channels, exchange_name, key, queue_name, options, &block)
       channels.inject(@subscriptions) do |memo,channel|
-        exchange = channel.exchange(exchange_name, EXCHANGE_OPTIONS)
+        exchange = declare_exchange(channel, exchange_name, options)
         queue =
-          channel.queue(queue, QUEUE_OPTIONS).tap do |q|
-            q.bind(exchange, { routing_key: key })
+          bind_queue(channel, exchange, queue_name, key, options).tap do |q|
+            q.subscribe(SUBSCRIBE_OPTIONS.merge(options), &block)
           end
-        memo.push(queue.subscribe(SUBSCRIBE_OPTIONS.merge(options), &block))
+        memo.push(queue)
       end
+    end
+
+    def bind_queue(channel, exchange, name, key, options)
+      channel
+        .queue(name, QUEUE_OPTIONS.merge(Hash(options[:queue])))
+        .tap { |q| q.bind(exchange, { routing_key: key }) }
+    end
+
+    def declare_exchange(channel, name, options)
+      channel.exchange(name, EXCHANGE_OPTIONS.merge(Hash(options[:exchange])))
     end
   end
 end
