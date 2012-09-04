@@ -4,7 +4,7 @@ module JackRabbit
   class Consumer
     EXCHANGE_OPTIONS  = { durable: true, type: :direct }
     QUEUE_OPTIONS     = { durable: true }
-    SUBSCRIBE_OPTIONS = { ack: true, blocking: false }
+    SUBSCRIBE_OPTIONS = { blocking: false }
 
     def initialize
       @connections   = []
@@ -13,14 +13,12 @@ module JackRabbit
     end
 
     def connect(uris)
-      uris.inject(@connections) do |memo,uri|
-        memo.push(open_connection(uri))
-      end
+      uris.inject(@connections) { |memo,uri| memo.push(open_connection(uri)) }
     end
 
-    def subscribe(exchange_name, routing_key, prefetch, &block)
-      channels = open_channels(prefetch)
-      bind_queues(channels, exchange_name, routing_key, &block)
+    def subscribe(exchange, key, queue, options = {}, &block)
+      channels = open_channels(options[:prefetch])
+      bind_queues(channels, exchange, key, queue, options, &block)
     end
 
     def disconnect
@@ -43,20 +41,20 @@ module JackRabbit
       @connections.inject(@channels) do |memo,connection|
         channel =
           connection.create_channel.tap do |channel|
-            channel.prefetch = prefetch
+            channel.prefetch = prefetch if prefetch
           end
         memo.push(channel)
       end
     end
 
-    def bind_queues(channels, exchange_name, routing_key, &block)
+    def bind_queues(channels, exchange_name, key, queue, options, &block)
       channels.inject(@subscriptions) do |memo,channel|
         exchange = channel.exchange(exchange_name, EXCHANGE_OPTIONS)
         queue =
-          channel.queue(routing_key, QUEUE_OPTIONS).tap do |q|
-            q.bind(exchange, { routing_key: routing_key })
+          channel.queue(queue, QUEUE_OPTIONS).tap do |q|
+            q.bind(exchange, { routing_key: key })
           end
-        memo.push(queue.subscribe(SUBSCRIBE_OPTIONS, &block))
+        memo.push(queue.subscribe(SUBSCRIBE_OPTIONS.merge(options), &block))
       end
     end
   end
