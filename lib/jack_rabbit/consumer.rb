@@ -1,4 +1,5 @@
 require 'hot_bunnies'
+require 'jack_rabbit/message_header'
 
 module JackRabbit
   class Consumer
@@ -18,7 +19,9 @@ module JackRabbit
 
     def subscribe(exchange, key, queue, options = {}, &block)
       channels = open_channels(options[:prefetch])
-      bind_queues(channels, exchange, key, queue, options, &block)
+      bind_queues(channels, exchange, key, queue, options) do |meta, message|
+        block.call(MessageHeader.new(meta), message)
+      end
     end
 
     def disconnect
