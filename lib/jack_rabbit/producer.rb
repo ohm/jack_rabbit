@@ -4,8 +4,8 @@ module JackRabbit
   class Producer
     EXCHANGE_OPTIONS = { auto_delete: false, durable: true }
 
-    def connect(uri)
-      @channel = (@connection = open_connection(uri)).create_channel
+    def connect(uri, options = {})
+      @channel = (@connection = open_connection(uri, options)).create_channel
     end
 
     def disconnect
@@ -20,13 +20,14 @@ module JackRabbit
 
     private
 
-    def open_connection(uri)
-      HotBunnies.connect(
+    def open_connection(uri, options = {})
+      HotBunnies.connect(options.merge(
         host: uri.host,
         pass: uri.password,
         port: uri.port,
-        user: uri.user
-      )
+        user: uri.user,
+        vhost: uri.path
+      ))
     end
 
     def with_exchange(channel, exchange_name, exchange_type, &block)

@@ -13,8 +13,10 @@ module JackRabbit
       @subscriptions = []
     end
 
-    def connect(uris)
-      uris.inject(@connections) { |memo,uri| memo.push(open_connection(uri)) }
+    def connect(uris, options = {})
+      uris.inject(@connections) do |memo, uri|
+        memo.push(open_connection(uri, options))
+      end
     end
 
     def subscribe(exchange, key, queue, options = {}, &block)
@@ -31,17 +33,18 @@ module JackRabbit
 
     private
 
-    def open_connection(uri)
-      HotBunnies.connect(
+    def open_connection(uri, options)
+      HotBunnies.connect(options.merge(
         host: uri.host,
         pass: uri.password,
         port: uri.port,
-        user: uri.user
-      )
+        user: uri.user,
+        vhost: uri.path
+      ))
     end
 
     def open_channels(prefetch)
-      @connections.inject(@channels) do |memo,connection|
+      @connections.inject(@channels) do |memo, connection|
         channel =
           connection.create_channel.tap do |channel|
             channel.prefetch = prefetch if prefetch
@@ -51,7 +54,7 @@ module JackRabbit
     end
 
     def bind_queues(channels, exchange_name, key, queue_name, options, &block)
-      channels.inject(@subscriptions) do |memo,channel|
+      channels.inject(@subscriptions) do |memo, channel|
         exchange = declare_exchange(channel, exchange_name, options)
         queue =
           bind_queue(channel, exchange, queue_name, key, options).tap do |q|
