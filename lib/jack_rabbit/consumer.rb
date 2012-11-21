@@ -34,21 +34,23 @@ module JackRabbit
     private
 
     def open_connection(uri, options)
-      HotBunnies.connect(options.merge(
-        host: uri.host,
-        pass: uri.password,
-        port: uri.port,
-        user: uri.user,
-        vhost: uri.path
-      ))
+      connection =
+        HotBunnies.connect(options.merge(
+          host: uri.host,
+          pass: uri.password,
+          port: uri.port,
+          user: uri.user,
+          vhost: uri.path
+        ))
+      connection.add_shutdown_listener { |_reason| exit! }
+      connection
     end
 
     def open_channels(prefetch)
       @connections.inject(@channels) do |memo, connection|
-        channel =
-          connection.create_channel.tap do |channel|
-            channel.prefetch = prefetch if prefetch
-          end
+        channel = connection.create_channel
+        channel.add_shutdown_listener { |_reason| exit! }
+        channel.prefetch = prefetch if prefetch
         memo.push(channel)
       end
     end

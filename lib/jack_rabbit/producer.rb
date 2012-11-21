@@ -20,14 +20,23 @@ module JackRabbit
 
     private
 
-    def open_connection(uri, options = {})
-      HotBunnies.connect(options.merge(
-        host: uri.host,
-        pass: uri.password,
-        port: uri.port,
-        user: uri.user,
-        vhost: uri.path
-      ))
+    def open_connection(uri, options)
+      connection =
+        HotBunnies.connect(options.merge(
+          host: uri.host,
+          pass: uri.password,
+          port: uri.port,
+          user: uri.user,
+          vhost: uri.path
+        ))
+      connection.add_shutdown_listener { |_reason| exit! }
+      connection
+    end
+
+    def open_channel(connection)
+      channel = connection.open_channel
+      channel.add_shutdown_listener { |_reason| exit! }
+      channel
     end
 
     def with_exchange(channel, exchange_name, exchange_type, &block)
