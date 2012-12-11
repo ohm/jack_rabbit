@@ -25,7 +25,6 @@ module JackRabbit
     def channel(options)
       channel = Channel.new(self, options)
       @channels << channel
-      channel.open
       channel
     end
 

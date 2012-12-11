@@ -1,18 +1,15 @@
-require 'jack_rabbit/connection'
+require 'jack_rabbit/client'
 
 module JackRabbit
   class Consumer
-    def initialize(logger)
+    include Client
+
+    def initialize(logger = nil)
       @logger = logger
     end
 
     def connect(uris, options = {})
-      @connections =
-        uris.map do |uri|
-          Connection.new(uri, options)
-            .set_logger(@logger)
-            .open
-        end
+      @connections = uris.map { |uri| open_connection(uri, options) }
     end
 
     def subscribe(exchange, key, queue, options = {}, &block)
@@ -28,12 +25,6 @@ module JackRabbit
 
     private
 
-    def open_channel(connection, options)
-      connection
-        .channel(options)
-        .set_logger(@logger)
-    end
-
     def declare_subscription(channel, exchange, key, queue, options, &block)
       channel
         .subscribe(exchange, key, queue, options, &block)
@@ -41,3 +32,4 @@ module JackRabbit
     end
   end
 end
+
