@@ -2,6 +2,9 @@ $:.push(File.expand_path('../../lib', __FILE__))
 
 require 'uri'
 require 'jack_rabbit'
+require 'thread'
+
+Thread.abort_on_exception = true
 
 subscriptions = [
   # exchange         key              queue
@@ -10,7 +13,10 @@ subscriptions = [
 
 consumer = JackRabbit::Consumer.new
 
-consumer.connect([ URI.parse('amqp://guest:guest@localhost:5672/') ])
+consumer.connect([
+  URI.parse('amqp://guest:guest@localhost:5672/'),
+  URI.parse('amqp://guest:guest@localhost:5672/')
+])
 
 subscriptions.each do |exchange, key, queue, options|
   consumer.subscribe(exchange, key, queue, options) do |header, message|

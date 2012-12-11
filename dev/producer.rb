@@ -2,6 +2,9 @@ $:.push(File.expand_path('../../lib', __FILE__))
 
 require 'uri'
 require 'jack_rabbit'
+require 'thread'
+
+Thread.abort_on_exception = true
 
 producer = JackRabbit::Producer.new
 
