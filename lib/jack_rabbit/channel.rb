@@ -1,7 +1,10 @@
 require 'jack_rabbit/subscription'
+require 'jack_rabbit/logging'
 
 module JackRabbit
   class Channel
+    include Logging
+
     EXCHANGE_OPTIONS = { durable: true, type: :direct }
 
     QUEUE_OPTIONS = { durable: true }
@@ -43,6 +46,7 @@ module JackRabbit
     private
 
     def open_channel(connection, options)
+      debug('opening channel...')
       channel = connection.create_channel
       channel.prefetch(options[:prefetch]) if options[:prefetch]
       channel.add_shutdown_listener { |_reason| connection.reconnect }

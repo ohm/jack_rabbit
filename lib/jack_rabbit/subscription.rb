@@ -1,7 +1,10 @@
 require 'jack_rabbit/message_header'
+require 'jack_rabbit/logging'
 
 module JackRabbit
   class Subscription
+    include Logging
+
     DEFAULT_OPTIONS = { blocking: false }
 
     def initialize(channel, exchange, key, queue, options, &block)

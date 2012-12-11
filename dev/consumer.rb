@@ -3,6 +3,9 @@ $:.push(File.expand_path('../../lib', __FILE__))
 require 'uri'
 require 'jack_rabbit'
 require 'thread'
+require 'logger'
+
+$stdout.sync = true
 
 Thread.abort_on_exception = true
 
@@ -11,7 +14,7 @@ subscriptions = [
   [ 'jackrabbitdev', 'consumer.test', 'consumer.test', {} ]
 ]
 
-consumer = JackRabbit::Consumer.new
+consumer = JackRabbit::Consumer.new(Logger.new($stdout))
 
 consumer.connect([
   URI.parse('amqp://guest:guest@localhost:5672/'),

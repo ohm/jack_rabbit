@@ -1,12 +1,15 @@
 require 'hot_bunnies'
 require 'jack_rabbit/channel'
+require 'jack_rabbit/logging'
 
 module JackRabbit
   class Connection
+    include Logging
+
     DEFAULT_OPTIONS = { connection_timeout: 5, heartbeat_interval: 5 }
 
     def initialize(uri, options)
-      @uri, @options = uri, options
+      @uri, @options = uri, options.merge(connection_options(uri))
       @channels = []
     end
 
@@ -26,7 +29,8 @@ module JackRabbit
       channel
     end
 
-    def reopen
+    def reopen(reason)
+      debug('%s, reconnecting...' % reason.inspect)
       open_connection(@uri, @options)
       @channels.each { |channel| channel.reopen }
     end
@@ -38,8 +42,14 @@ module JackRabbit
     private
 
     def open_connection(uri, options)
-      connection = HotBunnies.connect(connection_options(uri).merge(options))
-      connection.add_shutdown_listener { |_reason| reopen }
+      begin
+        info('connecting to %s:%d...' % [ uri.host, uri.port ])
+        connection = HotBunnies.connect(options)
+      rescue Java::JavaNet::ConnectException
+        sleep(1)
+        retry
+      end
+      connection.add_shutdown_listener { |reason| reopen(reason) }
       @connection = connection
     end
 
