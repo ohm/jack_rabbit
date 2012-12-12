@@ -1,9 +1,11 @@
 require 'hot_bunnies'
+require 'jack_rabbit/backoff'
 require 'jack_rabbit/channel'
 require 'jack_rabbit/logging'
 
 module JackRabbit
   class Connection
+    include Backoff
     include Logging
 
     DEFAULT_OPTIONS = { connection_timeout: 5, heartbeat_interval: 5 }
@@ -41,13 +43,11 @@ module JackRabbit
     private
 
     def open_connection(uri, options)
-      begin
-        info('connecting to %s:%d...' % [ uri.host, uri.port ])
-        connection = HotBunnies.connect(options)
-      rescue Java::JavaNet::ConnectException
-        sleep(1)
-        retry
-      end
+      connection =
+        with_backoff(Java::JavaNet::ConnectException) do
+          info('connecting to %s:%d...' % [ uri.host, uri.port ])
+          HotBunnies.connect(options)
+        end
       connection.add_shutdown_listener { |reason| reopen(reason) }
       @connection = connection
     end

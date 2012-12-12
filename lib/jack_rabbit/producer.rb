@@ -1,8 +1,11 @@
+require 'jack_rabbit/backoff'
 require 'jack_rabbit/client'
 
 module JackRabbit
   class Producer
+    include Backoff
     include Client
+    include Logging
 
     def initialize(logger = nil)
       @logger = logger
@@ -14,13 +17,11 @@ module JackRabbit
     end
 
     def publish(exchange, type, key, message, headers = {})
-      begin
+      with_backoff(Java::ComRabbitmqClient::AlreadyClosedException) do
+        debug('publishing to %s:%s with %s...' % [ type, exchange, key ])
         @channel
           .create_exchange(exchange, { type: type })
-          .publish(message, headers.merge({ routing_key: key }))
-      rescue Java::ComRabbitmqClient::AlreadyClosedException
-        sleep(1)
-        retry
+          .publish(message, headers.merge(routing_key: key))
       end
     end
 
