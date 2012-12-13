@@ -36,11 +36,13 @@ module JackRabbit
     end
 
     def create_exchange(name, options)
-      @channel.exchange(name, EXCHANGE_OPTIONS.merge(options))
+      exchange_options = options[:exchange] || {}
+      @channel.exchange(name, EXCHANGE_OPTIONS.merge(exchange_options))
     end
 
     def create_queue(name, options)
-      @channel.queue(name, QUEUE_OPTIONS.merge(options))
+      queue_options = options[:queue] || {}
+      @channel.queue(name, QUEUE_OPTIONS.merge(queue_options))
     end
 
     private
