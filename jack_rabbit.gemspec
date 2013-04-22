@@ -13,5 +13,5 @@ Gem::Specification.new do |gem|
   gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
 
-  gem.add_dependency('hot_bunnies', '~> 1.4.0')
+  gem.add_dependency('hot_bunnies', '~> 1.5.0')
 end
