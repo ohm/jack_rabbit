@@ -50,7 +50,7 @@ module JackRabbit
     def open_channel(connection, options)
       debug('opening channel...')
       channel = connection.create_channel
-      channel.prefetch(options[:prefetch]) if options[:prefetch]
+      channel.prefetch=(options[:prefetch]) if options[:prefetch]
       channel.add_shutdown_listener { |_reason| connection.reconnect }
       @channel = channel
     end

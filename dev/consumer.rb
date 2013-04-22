@@ -11,7 +11,7 @@ Thread.abort_on_exception = true
 
 subscriptions = [
   # exchange         key              queue
-  [ 'jackrabbitdev', 'consumer.test', 'consumer.test', {} ]
+  [ 'jackrabbitdev', 'consumer.test', 'consumer.test', {prefetch: 10} ]
 ]
 
 consumer = JackRabbit::Consumer.new(Logger.new($stdout))
