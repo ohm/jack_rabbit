@@ -8,10 +8,10 @@ module JackRabbit
     include Backoff
     include Logging
 
-    DEFAULT_OPTIONS = { connection_timeout: 5, heartbeat_interval: 5 }
+    DEFAULT_OPTIONS = { heartbeat_interval: 5 }
 
     def initialize(uri, options)
-      @uri, @options = uri, options.merge(connection_options(uri))
+      @uri, @options = uri, connection_options(uri).merge!(options)
       @channels = []
     end
 
