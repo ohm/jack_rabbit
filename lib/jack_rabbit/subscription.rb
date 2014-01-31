@@ -14,15 +14,19 @@ module JackRabbit
     end
 
     def declare
-      queue = @channel.create_queue(@queue, @options)
+      @subscribed_queue = @channel.create_queue(@queue, @options)
       if !@exchange.empty?
         exchange = @channel.create_exchange(@exchange, @options)
-        queue.bind(exchange, { routing_key: @key, arguments: @options[:arguments] })
+        @subscribed_queue.bind(exchange, { routing_key: @key, arguments: @options[:arguments] })
       end
       @subscription =
-        queue.subscribe(DEFAULT_OPTIONS.merge(@options)) do |meta, message|
+        @subscribed_queue.subscribe(DEFAULT_OPTIONS.merge(@options)) do |meta, message|
           @block.call(MessageHeader.new(meta), message)
         end
+    end
+
+    def unsubscribe
+      @subscribed_queue.delete
     end
   end
 end

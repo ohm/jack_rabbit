@@ -13,7 +13,7 @@ module JackRabbit
     end
 
     def subscribe(exchange, key, queue, options = {}, &block)
-      @connections.each do |connection|
+      @connections.map do |connection|
         channel = open_channel(connection, options)
         declare_subscription(channel, exchange, key, queue, options, &block)
       end
