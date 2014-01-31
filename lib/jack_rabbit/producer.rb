@@ -20,7 +20,7 @@ module JackRabbit
       with_backoff(Java::ComRabbitmqClient::AlreadyClosedException) do
         debug('publishing to %s:%s with %s...' % [ type, exchange, key ])
         @channel
-          .create_exchange(exchange, { type: type })
+          .create_exchange(exchange, { exchange: { type: type } })
           .publish(message, headers.merge(routing_key: key))
       end
     end
